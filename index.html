@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualização da Arquitetura em Camadas (Fluxo)</title>
+    <title>Simulador de Arquitetura em Camadas (Estrada)</title>
     <style>
         body { font-family: sans-serif; margin: 30px; background-color: #f4f4f9; display: flex; gap: 30px; }
         .formulario { flex: 1; max-width: 400px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: fit-content; }
-        .visualizacao { flex: 2; padding: 20px; background: #e0f7fa; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1); }
+        .visualizacao { flex: 2; padding: 20px; background: #e0f7fa; border-radius: 8px; position: relative; min-height: 950px; } /* Relativo para posicionar as setas */
         h2 { border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-bottom: 15px; }
         
         /* Estilos do Formulário */
@@ -20,32 +20,116 @@
         .erro { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
         /* Estilos da Visualização do Fluxo */
-        .camada {
+        .camada-box {
             background-color: #fff;
             padding: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 100px; /* Mantém o espaçamento de 50px */
             border-radius: 6px;
             border: 2px solid #ccc;
-            transition: all 0.5s ease-in-out;
-            opacity: 0.5;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            z-index: 10; 
+            min-height: 90px; /* Altura mínima para fixar o tamanho e estabilizar o layout */
         }
-        .camada h4 { margin: 0 0 5px 0; color: #333; }
-        .camada p { margin: 0; font-size: 0.9em; color: #666; }
+        .camada-box h4 { margin: 0 0 5px 0; color: #333; }
+        .camada-box p { margin: 0; font-size: 0.9em; color: #666; }
+        .camada-box.active { border-color: #28a745; box-shadow: 0 0 10px rgba(40, 167, 69, 0.5); transform: scale(1.02); }
+        .camada-box.error { border-color: #dc3545; box-shadow: 0 0 10px rgba(220, 53, 69, 0.5); transform: scale(1.02); }
 
-        /* Estilo Dinâmico para Camada Ativa */
-        .active-sending { background-color: #38c172; color: white; border-color: #216a3a; transform: scale(1.05); opacity: 1; }
-        .active-receiving { background-color: #3490dc; color: white; border-color: #1c5d9a; transform: scale(1.05); opacity: 1; }
-        .camada-bd { background-color: #ffed4a; color: #333; border-color: #d1b539; }
-        .active-error { background-color: #e3342f; color: white; border-color: #9b211f; transform: scale(1.05); opacity: 1; }
+        /* Estilo da Estrada (Setas) */
+        .caminho-seta {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px; /* Largura da "estrada" */
+            text-align: center;
+            padding: 5px 0;
+            z-index: 5;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            background-color: transparent;
+            transition: background-color 0.5s ease-in-out, height 0.5s ease-in-out;
+        }
 
-        .fluxo-log { margin-top: 20px; padding: 10px; background-color: #eee; border-radius: 4px; max-height: 200px; overflow-y: auto; }
+        /* AJUSTE FINAL DO POSICIONAMENTO DAS SETAS */
+        /* AJUSTE FINAL E FORTE DO POSICIONAMENTO DAS SETAS */
+        #seta-1-2 { top: 185px; height: 100px; } /* Altura da estrada agora é 100px */
+        #seta-2-3 { top: 385px; height: 100px; } /* Recálculo de TOP */
+        #seta-3-4 { top: 595px; height: 100px; } /* Recálculo de TOP */
+        
+        .seta-ida {
+            background-color: #28a745; /* Verde: Requisição de Ida */
+            animation: pulse-ida 1s infinite alternate;
+        }
+        .seta-volta {
+            background-color: #007bff; /* Azul: Resposta de Volta */
+            animation: pulse-volta 1s infinite alternate;
+        }
+
+        @keyframes pulse-ida {
+            from { box-shadow: 0 0 0 rgba(40, 167, 69, 0.4); }
+            to { box-shadow: 0 0 10px rgba(40, 167, 69, 1); }
+        }
+        @keyframes pulse-volta {
+            from { box-shadow: 0 0 0 rgba(0, 123, 255, 0.4); }
+            to { box-shadow: 0 0 10px rgba(0, 123, 255, 1); }
+        }
+        /* Estilo para o Ícone/Pacote */
+        .caminho-seta::after {
+            content: ''; /* Ícone será inserido via JS */
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px; /* Tamanho do ícone */
+            z-index: 20; /* Garante que fique acima da seta */
+            opacity: 0; /* Começa invisível */
+            transition: opacity 0.5s;
+        }
+
+        /* Animação para o ÍCONE de IDA (descendo) */
+        @keyframes mover-ida {
+            0% { transform: translate(-50%, -10px); opacity: 1; }
+            100% { transform: translate(-50%, 110px); opacity: 1; } /* Desce 110px */
+        }
+
+        /* Animação para o ÍCONE de VOLTA (subindo) */
+        @keyframes mover-volta {
+            0% { transform: translate(-50%, 110px); opacity: 1; }
+            100% { transform: translate(-50%, -10px); opacity: 1; } /* Sobe */
+        }
+
+        .animar-ida::after {
+            content: '📦'; /* Ícone do Pacote de Ida */
+            animation: mover-ida 1s linear forwards;
+        }
+
+        .animar-volta::after {
+            content: '✅'; /* Ícone de Confirmação/Resposta de Volta */
+            animation: mover-volta 1s linear forwards;
+        }
+
+        /* Ajustes no caminho da seta para que a animação não se repita */
+        .seta-ida {
+            background-color: #28a745; 
+            animation: none; /* Remove a animação de pulsação da própria seta */
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5); /* Mantém a sombra fixa */
+        }
+        .seta-volta {
+            background-color: #007bff; 
+            animation: none; /* Remove a animação de pulsação da própria seta */
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Mantém a sombra fixa */
+        }
+
+        .fluxo-log { margin-top: 40px; padding: 10px; background-color: #eee; border-radius: 4px; max-height: 200px; overflow-y: auto; }
         .log-item { margin-bottom: 5px; font-size: 0.85em; }
     </style>
 </head>
 <body>
     
     <div class="formulario">
-        <h1>Simulação de Arquitetura</h1>
+        <h1>Simulador de Arquitetura</h1>
         <h2>Entrada de Dados (Camada 1: UI)</h2>
         
         <form id="formCadastro">
@@ -64,24 +148,30 @@
     <div class="visualizacao">
         <h2>Visualização do Fluxo de Camadas</h2>
         
-        <div id="camada-apresentacao" class="camada">
+        <div id="camada-1" class="camada-box">
             <h4>Camada 1: Apresentação (UI/Controller)</h4>
-            <p>Recebe dados e envia requisição.</p>
+            <p id="status-1">Aguardando dados...</p>
         </div>
 
-        <div id="camada-negocio" class="camada">
+        <div id="seta-1-2" class="caminho-seta"></div>
+
+        <div id="camada-2" class="camada-box">
             <h4>Camada 2: Negócio (Service)</h4>
-            <p>Executa validações e regras (O cérebro).</p>
-        </div>
-
-        <div id="camada-persistencia" class="camada">
-            <h4>Camada 3: Persistência (Repository/DAL)</h4>
-            <p>Prepara e executa comandos no BD.</p>
+            <p id="status-2">Regras de negócio e validação.</p>
         </div>
         
-        <div id="camada-bd" class="camada camada-bd">
+        <div id="seta-2-3" class="caminho-seta"></div>
+
+        <div id="camada-3" class="camada-box">
+            <h4>Camada 3: Persistência (Repository/DAL)</h4>
+            <p id="status-3">Prepara comandos SQL/ORM.</p>
+        </div>
+        
+        <div id="seta-3-4" class="caminho-seta"></div>
+
+        <div id="camada-4" class="camada-box" style="background-color: #fff3cd; border-color: #ffe082;">
             <h4>Camada 4: Banco de Dados (Database)</h4>
-            <p>Armazenamento físico dos dados.</p>
+            <p id="status-4">Armazenamento físico.</p>
         </div>
 
         <div class="fluxo-log">
@@ -91,106 +181,172 @@
     </div>
 
     <script>
-        // --- FUNÇÕES DE AJUSTE VISUAL ---
+        // --- FUNÇÕES AUXILIARES ---
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
+        
         function logFluxo(mensagem) {
             const logContainer = document.getElementById('log-container');
             const logItem = document.createElement('div');
             logItem.className = 'log-item';
-            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${mensagem}`;
-            logContainer.prepend(logItem); // Adiciona no topo
+            logItem.innerHTML = `[${new Date().toLocaleTimeString()}] ${mensagem}`;
+            logContainer.prepend(logItem);
+            // Limitador básico para evitar excesso de logs
+            if (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
             console.log(mensagem);
         }
 
-        function destacarCamada(id, tipo = 'active-sending') {
-            document.querySelectorAll('.camada').forEach(el => {
-                el.classList.remove('active-sending', 'active-receiving', 'active-error');
-                el.style.opacity = '0.5';
-            });
-            const el = document.getElementById(id);
-            if (el) {
-                el.classList.add(tipo);
-                el.style.opacity = '1';
+        // FUNÇÃO ATUALIZADA (usa o número da camada)
+        function atualizarStatus(camadaNum, mensagem, tipo = 'normal') {
+            const camadaId = `camada-${camadaNum}`; // Monta o ID da caixa da camada (ex: camada-1)
+            const statusId = `status-${camadaNum}`; // Monta o ID do status interno (ex: status-1)
+            
+            // 1. Atualiza o texto de status
+            const statusElement = document.getElementById(statusId);
+            if (statusElement) {
+                 statusElement.textContent = mensagem;
+            }
+
+            // 2. Atualiza o estilo visual da caixa da camada
+            const element = document.getElementById(camadaId);
+            if (element) {
+                element.classList.remove('active', 'error');
+                if (tipo === 'active') element.classList.add('active');
+                if (tipo === 'error') element.classList.add('error');
+            }
+        }
+
+        function atualizarSeta(setaId, tipo) {
+            const seta = document.getElementById(setaId);
+            
+            // Remove as classes de fluxo e animação
+            seta.classList.remove('seta-ida', 'seta-volta', 'animar-ida', 'animar-volta');
+            seta.innerHTML = '';
+
+            if (tipo === 'ida') {
+                seta.classList.add('seta-ida', 'animar-ida');
+                seta.innerHTML = 'REQUISIÇÃO ↓';
+            } else if (tipo === 'volta') {
+                seta.classList.add('seta-volta', 'animar-volta');
+                seta.innerHTML = 'RESPOSTA ↑';
             }
         }
 
         function resetVisual() {
-            document.querySelectorAll('.camada').forEach(el => {
-                el.classList.remove('active-sending', 'active-receiving', 'active-error');
-                el.style.opacity = '0.5';
-            });
+            document.querySelectorAll('.camada-box').forEach(el => el.classList.remove('active', 'error'));
+            document.querySelectorAll('.caminho-seta').forEach(el => { el.classList.remove('seta-ida', 'seta-volta'); el.innerHTML = ''; });
             document.getElementById('log-container').innerHTML = '';
+            // Usa a função corrigida para resetar os textos
+            atualizarStatus('1', 'Aguardando dados...');
+            atualizarStatus('2', 'Regras de negócio e validação.');
+            atualizarStatus('3', 'Prepara comandos SQL/ORM.');
+            atualizarStatus('4', 'Armazenamento físico.');
         }
 
-        // --- FUNÇÕES DE FLUXO (SIMULAÇÃO DAS CAMADAS) ---
+        // --- FLUXO PRINCIPAL (SIMULAÇÃO DAS CAMADAS) ---
         
         async function simularFluxoDeCamadas(nome, cpf) {
             
-            // =========================================================================
+            // -------------------------------------------------------------------------
             // FLUXO DE IDA (Downstream: Pedido de Cadastro)
-            // =========================================================================
+            // -------------------------------------------------------------------------
             
-            logFluxo("REQUISIÇÃO INICIADA: Dados enviados para a API.");
-            destacarCamada('camada-apresentacao', 'active-sending');
+            logFluxo("▶️ INÍCIO: Requisição capturada na Camada de Apresentação.");
+            atualizarStatus('1', 'Capturado. Partindo para Negócio...', 'active');
             await sleep(500);
 
-            // 1. Chegando na Camada de Negócio (Service)
-            logFluxo("--> Camada de Negócio: Iniciando validações...");
-            destacarCamada('camada-negocio', 'active-sending');
-            await sleep(700);
+            // Ida 1-2
+            atualizarSeta('seta-1-2', 'ida');
+            await sleep(1000);
+
+            // Camada 2: Negócio (Service)
+            atualizarSeta('seta-1-2', '');
+            atualizarStatus('2', 'CHEGANDO. Iniciando validações...', 'active');
+            logFluxo("2️⃣ Negócio: Chegou. Validando dados...");
+            await sleep(1500);
 
             // VALIDAÇÃO CRÍTICA (Simulação de Erro de Negócio)
-            if (!nome || nome.length < 3) {
-                logFluxo("!!! ERRO DE NEGÓCIO: Nome inválido. A persistência não será chamada.");
-                destacarCamada('camada-negocio', 'active-error');
-                return { status: 400, data: { erro: "NEGÓCIO: Nome do cliente inválido ou muito curto." } };
+            if (!nome || nome.length < 3 || !cpf || cpf.length !== 11 || !/^\d+$/.test(cpf)) {
+                logFluxo("❌ ERRO DE NEGÓCIO: Validação falhou. Retorno imediato.");
+                atualizarStatus('2', 'ERRO! Retornando resposta 400.', 'error');
+                await sleep(500);
+                
+                // Volta do Erro
+                atualizarSeta('seta-1-2', 'volta');
+                await sleep(1000);
+                
+                logFluxo("↩️ FIM (ERRO): Resposta 400 devolvida à Apresentação.");
+                return { status: 400, data: { erro: "Nome ou CPF inválido (regra de negócio)." } };
             }
-            if (!cpf || cpf.length !== 11 || !/^\d+$/.test(cpf)) {
-                 logFluxo("!!! ERRO DE NEGÓCIO: CPF inválido. A persistência não será chamada.");
-                destacarCamada('camada-negocio', 'active-error');
-                return { status: 400, data: { erro: "NEGÓCIO: CPF inválido. Cadastro negado." } };
-            }
 
-            // 2. Chamada à Camada de Persistência (Repository/DAL)
-            logFluxo("--> Camada de Persistência: Preparando SQL para o Banco...");
-            destacarCamada('camada-persistencia', 'active-sending');
-            await sleep(700);
+            // Partida 2-3
+            atualizarStatus('2', 'Validações OK. Partindo para Persistência...', 'active');
+            atualizarSeta('seta-2-3', 'ida');
+            await sleep(1000);
 
-            // 3. Chegando na Camada de Banco de Dados
-            logFluxo("--> Camada de Banco de Dados: Executando INSERT...");
-            destacarCamada('camada-bd', 'active-sending');
-            await sleep(1000); // Simula o tempo de I/O do banco
+            // Camada 3: Persistência (Repository/DAL)
+            atualizarSeta('seta-2-3', '');
+            atualizarStatus('3', 'CHEGANDO. Preparando comando SQL...', 'active');
+            logFluxo("3️⃣ Persistência: Chegou. Preparando para salvar...");
+            await sleep(1000);
 
-            // =========================================================================
+            // Partida 3-4
+            atualizarStatus('3', 'Comando SQL pronto. Partindo para o Banco de Dados...', 'active');
+            atualizarSeta('seta-3-4', 'ida');
+            await sleep(1000);
+
+            // Camada 4: Banco de Dados
+            atualizarSeta('seta-3-4', '');
+            atualizarStatus('4', 'CHEGANDO. Executando I/O...', 'active');
+            logFluxo("4️⃣ Banco de Dados: Salvando registro...");
+            await sleep(1500); 
+
+            // -------------------------------------------------------------------------
             // FLUXO DE VOLTA (Upstream: Resposta de Sucesso)
-            // =========================================================================
+            // -------------------------------------------------------------------------
             
-            // 4. Retorno do Banco de Dados para Persistência
-            logFluxo("<-- Camada de Banco de Dados: Confirmação de INSERT.");
-            destacarCamada('camada-bd', 'active-receiving');
+            logFluxo("⬆️ VOLTA INICIADA: Sucesso no Banco de Dados.");
+            
+            // Volta 4-3
+            atualizarStatus('4', 'Sucesso! Retornando resultado.', 'active');
+            atualizarSeta('seta-3-4', 'volta');
+            await sleep(1000);
+            
+            // Camada 3: Persistência
+            atualizarSeta('seta-3-4', '');
+            atualizarStatus('3', 'CHEGANDO. Mapeando resultado...', 'active');
+            logFluxo("3️⃣ Persistência: Mapeamento concluído.");
+            await sleep(500);
+            
+            // Volta 3-2
+            atualizarStatus('3', 'Pronto. Partindo para Negócio...', 'active');
+            atualizarSeta('seta-2-3', 'volta');
+            await sleep(1000);
+
+            // Camada 2: Negócio
+            atualizarSeta('seta-2-3', '');
+            atualizarStatus('2', 'CHEGANDO. Lógica finalizada.', 'active');
+            logFluxo("2️⃣ Negócio: Requisição OK. Preparando resposta final.");
             await sleep(500);
 
-            // 5. Retorno para Camada de Negócio
-            logFluxo("<-- Camada de Persistência: Dados mapeados. Retornando objeto...");
-            destacarCamada('camada-persistencia', 'active-receiving');
-            await sleep(500);
-            
-            // 6. Retorno para o Controller/UI
-            logFluxo("<-- Camada de Negócio: Lógica finalizada. Retornando STATUS 201.");
-            destacarCamada('camada-negocio', 'active-receiving');
-            await sleep(500);
+            // Volta 2-1
+            atualizarStatus('2', 'Pronto. Partindo para Apresentação...', 'active');
+            atualizarSeta('seta-1-2', 'volta');
+            await sleep(1000);
 
             // Fim do Processo
-            logFluxo("REQUISIÇÃO FINALIZADA: Sucesso!");
+            atualizarSeta('seta-1-2', '');
+            atualizarStatus('1', 'Resposta recebida. Sucesso.', 'active');
+            logFluxo("✅ FIM (SUCESSO): Resposta 201 devolvida ao usuário.");
+
             return { 
                 status: 201, 
                 data: { id: Math.floor(Math.random() * 100) + 1, nome: nome, cpf: cpf } 
             };
         }
 
-
-        // --- LÓGICA DO FORMULÁRIO ---
+        // --- LÓGICA DO FORMULÁRIO (CHAMA O FLUXO) ---
 
         document.getElementById('formCadastro').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -203,16 +359,14 @@
             mensagemDiv.className = '';
             document.getElementById('btnCadastrar').disabled = true;
             resetVisual();
-
+            
             const resposta = await simularFluxoDeCamadas(nome, cpf);
 
-            // --- TRATAMENTO DO RETORNO ---
+            // TRATAMENTO DO RETORNO E FINALIZAÇÃO
             document.getElementById('btnCadastrar').disabled = false;
-            destacarCamada('camada-apresentacao', resposta.status === 201 ? 'active-receiving' : 'active-error');
-
-
+            
             if (resposta.status === 201) {
-                mensagemDiv.textContent = `Sucesso! Cliente cadastrado: ${resposta.data.nome} (ID: ${resposta.data.id})`;
+                mensagemDiv.textContent = `Sucesso! Cliente cadastrado: ${resposta.data.nome}`;
                 mensagemDiv.classList.add('sucesso');
                 document.getElementById('formCadastro').reset();
             } else if (resposta.status === 400) {
