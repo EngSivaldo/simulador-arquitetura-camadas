@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Arquitetura em Camadas - Biblioteca</title>
+    <title>Simulador de Arquitetura em Camadas (Estrada)</title>
     <style>
         body { font-family: sans-serif; margin: 30px; background-color: #f4f4f9; display: flex; gap: 30px; }
         .formulario { flex: 1; max-width: 400px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: fit-content; }
-        /* Aumentamos a altura mínima para acomodar as setas de 100px */
-        .visualizacao { flex: 2; padding: 20px; background: #e0f7fa; border-radius: 8px; position: relative; min-height: 950px; } 
+        .visualizacao { flex: 2; padding: 20px; background: #e0f7fa; border-radius: 8px; position: relative; min-height: 950px; } /* Relativo para posicionar as setas */
         h2 { border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-bottom: 15px; }
         
         /* Estilos do Formulário */
@@ -24,13 +23,13 @@
         .camada-box {
             background-color: #fff;
             padding: 15px;
-            margin-bottom: 100px; /* Margem ajustada para acomodar setas grandes */
+            margin-bottom: 100px; /* Mantém o espaçamento de 50px */
             border-radius: 6px;
             border: 2px solid #ccc;
             transition: all 0.3s ease-in-out;
             position: relative;
             z-index: 10; 
-            min-height: 90px; /* Altura mínima fixa */
+            min-height: 90px; /* Altura mínima para fixar o tamanho e estabilizar o layout */
         }
         .camada-box h4 { margin: 0 0 5px 0; color: #333; }
         .camada-box p { margin: 0; font-size: 0.9em; color: #666; }
@@ -42,7 +41,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 150px; /* Largura para caber o texto */
+            width: 50px; /* Largura da "estrada" */
             text-align: center;
             padding: 5px 0;
             z-index: 5;
@@ -53,49 +52,74 @@
             transition: background-color 0.5s ease-in-out, height 0.5s ease-in-out;
         }
 
-        /* AJUSTE DO POSICIONAMENTO PARA MARGEM DE 100PX (Corrigido) */
-        #seta-1-2 { top: 185px; height: 100px; } 
-        #seta-2-3 { top: 385px; height: 100px; } /* Corrigido para erro acumulado */
-        #seta-3-4 { top: 585px; height: 100px; } /* Corrigido para erro acumulado */
+        /* AJUSTE FINAL DO POSICIONAMENTO DAS SETAS */
+        /* AJUSTE FINAL E FORTE DO POSICIONAMENTO DAS SETAS */
+        #seta-1-2 { top: 185px; height: 100px; } /* Altura da estrada agora é 100px */
+        #seta-2-3 { top: 385px; height: 100px; } /* Recálculo de TOP */
+        #seta-3-4 { top: 595px; height: 100px; } /* Recálculo de TOP */
         
         .seta-ida {
-            background-color: #28a745; 
-            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-            animation: none;
+            background-color: #28a745; /* Verde: Requisição de Ida */
+            animation: pulse-ida 1s infinite alternate;
         }
         .seta-volta {
-            background-color: #007bff; 
-            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
-            animation: none;
+            background-color: #007bff; /* Azul: Resposta de Volta */
+            animation: pulse-volta 1s infinite alternate;
         }
 
-        /* Ícone / Pacote de Dados (NOVO) */
+        @keyframes pulse-ida {
+            from { box-shadow: 0 0 0 rgba(40, 167, 69, 0.4); }
+            to { box-shadow: 0 0 10px rgba(40, 167, 69, 1); }
+        }
+        @keyframes pulse-volta {
+            from { box-shadow: 0 0 0 rgba(0, 123, 255, 0.4); }
+            to { box-shadow: 0 0 10px rgba(0, 123, 255, 1); }
+        }
+        /* Estilo para o Ícone/Pacote */
         .caminho-seta::after {
-            content: '';
+            content: ''; /* Ícone será inserido via JS */
             position: absolute;
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 24px;
-            z-index: 20;
-            opacity: 0;
+            font-size: 24px; /* Tamanho do ícone */
+            z-index: 20; /* Garante que fique acima da seta */
+            opacity: 0; /* Começa invisível */
             transition: opacity 0.5s;
         }
+
+        /* Animação para o ÍCONE de IDA (descendo) */
         @keyframes mover-ida {
             0% { transform: translate(-50%, -10px); opacity: 1; }
-            100% { transform: translate(-50%, 110px); opacity: 1; }
+            100% { transform: translate(-50%, 110px); opacity: 1; } /* Desce 110px */
         }
+
+        /* Animação para o ÍCONE de VOLTA (subindo) */
         @keyframes mover-volta {
             0% { transform: translate(-50%, 110px); opacity: 1; }
-            100% { transform: translate(-50%, -10px); opacity: 1; }
+            100% { transform: translate(-50%, -10px); opacity: 1; } /* Sobe */
         }
+
         .animar-ida::after {
-            content: '📚'; /* Livro descendo */
-            animation: mover-ida 1.5s linear forwards; /* Aumentei a duração para 1.5s */
+            content: '📦'; /* Ícone do Pacote de Ida */
+            animation: mover-ida 1s linear forwards;
         }
+
         .animar-volta::after {
-            content: '✅'; /* Confirmação subindo */
-            animation: mover-volta 1.5s linear forwards; /* Aumentei a duração para 1.5s */
+            content: '✅'; /* Ícone de Confirmação/Resposta de Volta */
+            animation: mover-volta 1s linear forwards;
+        }
+
+        /* Ajustes no caminho da seta para que a animação não se repita */
+        .seta-ida {
+            background-color: #28a745; 
+            animation: none; /* Remove a animação de pulsação da própria seta */
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5); /* Mantém a sombra fixa */
+        }
+        .seta-volta {
+            background-color: #007bff; 
+            animation: none; /* Remove a animação de pulsação da própria seta */
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Mantém a sombra fixa */
         }
 
         .fluxo-log { margin-top: 40px; padding: 10px; background-color: #eee; border-radius: 4px; max-height: 200px; overflow-y: auto; }
@@ -105,20 +129,17 @@
 <body>
     
     <div class="formulario">
-        <h1>Simulador de Biblioteca</h1>
-        <h2>Entrada de Livro (Camada 1: UI)</h2>
+        <h1>Simulador de Arquitetura</h1>
+        <h2>Entrada de Dados (Camada 1: UI)</h2>
         
         <form id="formCadastro">
-            <label for="titulo">Título do Livro:</label>
-            <input type="text" id="titulo" required minlength="3">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" required minlength="3">
             
-            <label for="autor">Autor:</label>
-            <input type="text" id="autor" required minlength="5">
-
-            <label for="isbn">ISBN (13 dígitos):</label>
-            <input type="text" id="isbn" required maxlength="13" pattern="\d{13}" title="O ISBN deve conter exatamente 13 dígitos numéricos.">
+            <label for="cpf">CPF (11 dígitos):</label>
+            <input type="text" id="cpf" required maxlength="11" pattern="\d{11}" title="O CPF deve conter exatamente 11 dígitos numéricos.">
             
-            <button type="submit" id="btnCadastrar">Cadastrar Livro</button>
+            <button type="submit" id="btnCadastrar">Cadastrar Cliente</button>
         </form>
         
         <div id="mensagem">Aguardando envio...</div>
@@ -128,29 +149,29 @@
         <h2>Visualização do Fluxo de Camadas</h2>
         
         <div id="camada-1" class="camada-box">
-            <h4>Camada 1: Apresentação (Interface/Controller)</h4>
+            <h4>Camada 1: Apresentação (UI/Controller)</h4>
             <p id="status-1">Aguardando dados...</p>
         </div>
 
         <div id="seta-1-2" class="caminho-seta"></div>
 
         <div id="camada-2" class="camada-box">
-            <h4>Camada 2: Negócio (Serviço de Catálogo)</h4>
-            <p id="status-2">Validação de ISBN e regras de catálogo.</p>
+            <h4>Camada 2: Negócio (Service)</h4>
+            <p id="status-2">Regras de negócio e validação.</p>
         </div>
         
         <div id="seta-2-3" class="caminho-seta"></div>
 
         <div id="camada-3" class="camada-box">
-            <h4>Camada 3: Persistência (Repositório de Livros)</h4>
-            <p id="status-3">Prepara o comando SQL de INSERT.</p>
+            <h4>Camada 3: Persistência (Repository/DAL)</h4>
+            <p id="status-3">Prepara comandos SQL/ORM.</p>
         </div>
         
         <div id="seta-3-4" class="caminho-seta"></div>
 
         <div id="camada-4" class="camada-box" style="background-color: #fff3cd; border-color: #ffe082;">
-            <h4>Camada 4: Banco de Dados (Acervo Digital)</h4>
-            <p id="status-4">Armazenamento físico de registros.</p>
+            <h4>Camada 4: Banco de Dados (Database)</h4>
+            <p id="status-4">Armazenamento físico.</p>
         </div>
 
         <div class="fluxo-log">
@@ -169,18 +190,25 @@
             logItem.className = 'log-item';
             logItem.innerHTML = `[${new Date().toLocaleTimeString()}] ${mensagem}`;
             logContainer.prepend(logItem);
+            // Limitador básico para evitar excesso de logs
             if (logContainer.children.length > 20) {
                 logContainer.removeChild(logContainer.lastChild);
             }
+            console.log(mensagem);
         }
 
+        // FUNÇÃO ATUALIZADA (usa o número da camada)
         function atualizarStatus(camadaNum, mensagem, tipo = 'normal') {
-            const camadaId = `camada-${camadaNum}`;
-            const statusId = `status-${camadaNum}`;
+            const camadaId = `camada-${camadaNum}`; // Monta o ID da caixa da camada (ex: camada-1)
+            const statusId = `status-${camadaNum}`; // Monta o ID do status interno (ex: status-1)
             
+            // 1. Atualiza o texto de status
             const statusElement = document.getElementById(statusId);
-            if (statusElement) statusElement.textContent = mensagem;
+            if (statusElement) {
+                 statusElement.textContent = mensagem;
+            }
 
+            // 2. Atualiza o estilo visual da caixa da camada
             const element = document.getElementById(camadaId);
             if (element) {
                 element.classList.remove('active', 'error');
@@ -192,7 +220,7 @@
         function atualizarSeta(setaId, tipo) {
             const seta = document.getElementById(setaId);
             
-            // Remove classes de fluxo e animação de ícone
+            // Remove as classes de fluxo e animação
             seta.classList.remove('seta-ida', 'seta-volta', 'animar-ida', 'animar-volta');
             seta.innerHTML = '';
 
@@ -207,135 +235,114 @@
 
         function resetVisual() {
             document.querySelectorAll('.camada-box').forEach(el => el.classList.remove('active', 'error'));
-            document.querySelectorAll('.caminho-seta').forEach(el => { el.classList.remove('seta-ida', 'seta-volta', 'animar-ida', 'animar-volta'); el.innerHTML = ''; });
+            document.querySelectorAll('.caminho-seta').forEach(el => { el.classList.remove('seta-ida', 'seta-volta'); el.innerHTML = ''; });
             document.getElementById('log-container').innerHTML = '';
+            // Usa a função corrigida para resetar os textos
             atualizarStatus('1', 'Aguardando dados...');
-            atualizarStatus('2', 'Validação de ISBN e regras de catálogo.');
-            atualizarStatus('3', 'Prepara o comando SQL de INSERT.');
-            atualizarStatus('4', 'Armazenamento físico de registros.');
+            atualizarStatus('2', 'Regras de negócio e validação.');
+            atualizarStatus('3', 'Prepara comandos SQL/ORM.');
+            atualizarStatus('4', 'Armazenamento físico.');
         }
 
         // --- FLUXO PRINCIPAL (SIMULAÇÃO DAS CAMADAS) ---
         
-        async function simularCadastroLivro(titulo, autor, isbn) {
+        async function simularFluxoDeCamadas(nome, cpf) {
             
-            logFluxo("▶️ INÍCIO: Requisição de Cadastro de Livro capturada.");
-            atualizarStatus('1', `Livro: ${titulo} - Partindo para Negócio...`, 'active');
+            // -------------------------------------------------------------------------
+            // FLUXO DE IDA (Downstream: Pedido de Cadastro)
+            // -------------------------------------------------------------------------
+            
+            logFluxo("▶️ INÍCIO: Requisição capturada na Camada de Apresentação.");
+            atualizarStatus('1', 'Capturado. Partindo para Negócio...', 'active');
             await sleep(500);
 
             // Ida 1-2
             atualizarSeta('seta-1-2', 'ida');
-            await sleep(1500); // Espera a animação do ícone
+            await sleep(1000);
 
-            // Camada 2: Negócio (Validação de Catálogo)
+            // Camada 2: Negócio (Service)
             atualizarSeta('seta-1-2', '');
-            atualizarStatus('2', 'CHEGANDO. Verificando ISBN e regras de catálogo...', 'active');
-            logFluxo("2️⃣ Negócio: Validando ISBN, Autor e Título.");
+            atualizarStatus('2', 'CHEGANDO. Iniciando validações...', 'active');
+            logFluxo("2️⃣ Negócio: Chegou. Validando dados...");
             await sleep(1500);
 
-            // VALIDAÇÃO 1: ERRO DE REGRA DE NEGÓCIO (Autor Fictício)
-            if (autor.toLowerCase().includes('desconhecido')) {
-                 logFluxo("❌ ERRO DE NEGÓCIO: Autor 'Desconhecido' não permitido. Retorno 400.");
-                 atualizarStatus('2', 'ERRO! Autor inválido. Retornando 400.', 'error');
-                 await sleep(500);
-                 atualizarSeta('seta-1-2', 'volta');
-                 await sleep(1500);
-                 logFluxo("↩️ FIM (ERRO): Resposta devolvida à Apresentação.");
-                 return { status: 400, data: { erro: "Regra de Negócio: Autor não pode ser 'Desconhecido'." } };
+            // VALIDAÇÃO CRÍTICA (Simulação de Erro de Negócio)
+            if (!nome || nome.length < 3 || !cpf || cpf.length !== 11 || !/^\d+$/.test(cpf)) {
+                logFluxo("❌ ERRO DE NEGÓCIO: Validação falhou. Retorno imediato.");
+                atualizarStatus('2', 'ERRO! Retornando resposta 400.', 'error');
+                await sleep(500);
+                
+                // Volta do Erro
+                atualizarSeta('seta-1-2', 'volta');
+                await sleep(1000);
+                
+                logFluxo("↩️ FIM (ERRO): Resposta 400 devolvida à Apresentação.");
+                return { status: 400, data: { erro: "Nome ou CPF inválido (regra de negócio)." } };
             }
 
             // Partida 2-3
             atualizarStatus('2', 'Validações OK. Partindo para Persistência...', 'active');
             atualizarSeta('seta-2-3', 'ida');
-            await sleep(1500);
+            await sleep(1000);
 
-            // Camada 3: Persistência
+            // Camada 3: Persistência (Repository/DAL)
             atualizarSeta('seta-2-3', '');
-            atualizarStatus('3', 'CHEGANDO. Preparando comando INSERT SQL...', 'active');
-            logFluxo("3️⃣ Persistência: Criando comando para o Acervo.");
+            atualizarStatus('3', 'CHEGANDO. Preparando comando SQL...', 'active');
+            logFluxo("3️⃣ Persistência: Chegou. Preparando para salvar...");
             await sleep(1000);
 
             // Partida 3-4
-            atualizarStatus('3', 'Comando pronto. Partindo para o Banco de Dados (Acervo)...', 'active');
+            atualizarStatus('3', 'Comando SQL pronto. Partindo para o Banco de Dados...', 'active');
             atualizarSeta('seta-3-4', 'ida');
-            await sleep(1500);
+            await sleep(1000);
 
             // Camada 4: Banco de Dados
             atualizarSeta('seta-3-4', '');
-            atualizarStatus('4', 'CHEGANDO. Tentando inserir registro (I/O)...', 'active');
-            logFluxo("4️⃣ Acervo Digital: Tentando salvar livro...");
+            atualizarStatus('4', 'CHEGANDO. Executando I/O...', 'active');
+            logFluxo("4️⃣ Banco de Dados: Salvando registro...");
             await sleep(1500); 
 
-            // VALIDAÇÃO 2: ERRO DE CHAVE ÚNICA (Simulação de ISBN já cadastrado)
-            // Simula falha se o ISBN terminar com "000"
-            if (isbn.endsWith('000')) {
-                logFluxo("🔥 ERRO DE DADOS (Duplicidade): ISBN já existente (Chave Única). Retornando 409.");
-                atualizarStatus('4', 'FALHA! ISBN já cadastrado. Retornando 409.', 'error');
-                await sleep(500);
-                
-                // Volta do Erro de Dados
-                atualizarSeta('seta-3-4', 'volta');
-                await sleep(1500);
-                atualizarSeta('seta-3-4', '');
-
-                atualizarStatus('3', 'Erro 409 recebido. Mapeando e repassando.', 'error');
-                await sleep(500);
-
-                atualizarSeta('seta-2-3', 'volta');
-                await sleep(1500);
-                atualizarSeta('seta-2-3', '');
-
-                atualizarStatus('2', 'Erro de Persistência recebido. Processando 409.', 'error');
-                await sleep(500);
-
-                atualizarSeta('seta-1-2', 'volta');
-                await sleep(1500);
-
-                logFluxo("↩️ FIM (ERRO): Resposta 409 devolvida à Apresentação.");
-                return { status: 409, data: { erro: "Livro já existe (ISBN Duplicado)." } };
-            }
-            
             // -------------------------------------------------------------------------
-            // FLUXO DE VOLTA (Sucesso)
+            // FLUXO DE VOLTA (Upstream: Resposta de Sucesso)
             // -------------------------------------------------------------------------
             
-            logFluxo("⬆️ VOLTA INICIADA: Sucesso na Inserção de Registro.");
+            logFluxo("⬆️ VOLTA INICIADA: Sucesso no Banco de Dados.");
             
             // Volta 4-3
-            atualizarStatus('4', 'Sucesso! Registro inserido. Retornando ID.', 'active');
+            atualizarStatus('4', 'Sucesso! Retornando resultado.', 'active');
             atualizarSeta('seta-3-4', 'volta');
-            await sleep(1500);
+            await sleep(1000);
             
             // Camada 3: Persistência
             atualizarSeta('seta-3-4', '');
-            atualizarStatus('3', 'CHEGANDO. Mapeando resposta para Objeto Livro...', 'active');
+            atualizarStatus('3', 'CHEGANDO. Mapeando resultado...', 'active');
             logFluxo("3️⃣ Persistência: Mapeamento concluído.");
             await sleep(500);
             
             // Volta 3-2
-            atualizarStatus('3', 'Objeto pronto. Partindo para Negócio...', 'active');
+            atualizarStatus('3', 'Pronto. Partindo para Negócio...', 'active');
             atualizarSeta('seta-2-3', 'volta');
-            await sleep(1500);
+            await sleep(1000);
 
             // Camada 2: Negócio
             atualizarSeta('seta-2-3', '');
-            atualizarStatus('2', 'CHEGANDO. Aplicando lógica de evento pós-cadastro.', 'active');
-            logFluxo("2️⃣ Negócio: Processo OK. Preparando resposta final.");
+            atualizarStatus('2', 'CHEGANDO. Lógica finalizada.', 'active');
+            logFluxo("2️⃣ Negócio: Requisição OK. Preparando resposta final.");
             await sleep(500);
 
             // Volta 2-1
             atualizarStatus('2', 'Pronto. Partindo para Apresentação...', 'active');
             atualizarSeta('seta-1-2', 'volta');
-            await sleep(1500);
+            await sleep(1000);
 
             // Fim do Processo
             atualizarSeta('seta-1-2', '');
-            atualizarStatus('1', 'Resposta recebida. Livro cadastrado com sucesso!', 'active');
+            atualizarStatus('1', 'Resposta recebida. Sucesso.', 'active');
             logFluxo("✅ FIM (SUCESSO): Resposta 201 devolvida ao usuário.");
 
             return { 
                 status: 201, 
-                data: { id: Math.floor(Math.random() * 1000) + 1, titulo: titulo } 
+                data: { id: Math.floor(Math.random() * 100) + 1, nome: nome, cpf: cpf } 
             };
         }
 
@@ -344,30 +351,26 @@
         document.getElementById('formCadastro').addEventListener('submit', async function(event) {
             event.preventDefault();
             
-            const titulo = document.getElementById('titulo').value;
-            const autor = document.getElementById('autor').value;
-            const isbn = document.getElementById('isbn').value;
+            const nome = document.getElementById('nome').value;
+            const cpf = document.getElementById('cpf').value;
             const mensagemDiv = document.getElementById('mensagem');
             
-            mensagemDiv.textContent = 'Processando... Analise o Fluxo da Biblioteca.';
+            mensagemDiv.textContent = 'Processando... Veja o Fluxo ao lado.';
             mensagemDiv.className = '';
             document.getElementById('btnCadastrar').disabled = true;
             resetVisual();
             
-            const resposta = await simularCadastroLivro(titulo, autor, isbn);
+            const resposta = await simularFluxoDeCamadas(nome, cpf);
 
             // TRATAMENTO DO RETORNO E FINALIZAÇÃO
             document.getElementById('btnCadastrar').disabled = false;
             
             if (resposta.status === 201) {
-                mensagemDiv.textContent = `Sucesso! Livro cadastrado: "${resposta.data.titulo}"`;
+                mensagemDiv.textContent = `Sucesso! Cliente cadastrado: ${resposta.data.nome}`;
                 mensagemDiv.classList.add('sucesso');
                 document.getElementById('formCadastro').reset();
             } else if (resposta.status === 400) {
-                mensagemDiv.textContent = `Erro de Validação (400): ${resposta.data.erro}`;
-                mensagemDiv.classList.add('erro');
-            } else if (resposta.status === 409) {
-                mensagemDiv.textContent = `Erro de Conflito de Dados (409): ${resposta.data.erro}`;
+                mensagemDiv.textContent = `Erro de Validação: ${resposta.data.erro}`;
                 mensagemDiv.classList.add('erro');
             }
             
